@@ -90,7 +90,8 @@ class _CustomerQueuePanel extends StatelessWidget {
             name: '첫 손님',
             vehicle: '차량 콘텐츠 대기',
             issue: '상담 화면 연결 전',
-            tag: '준비',
+            mood: '기다림 03분',
+            tag: '예산 민감',
           ),
           SizedBox(height: PitStopSpacing.md),
           _EmptyQueueRow(),
@@ -185,33 +186,146 @@ class _QueueRow extends StatelessWidget {
     required this.name,
     required this.vehicle,
     required this.issue,
+    required this.mood,
     required this.tag,
   });
 
   final String name;
   final String vehicle;
   final String issue;
+  final String mood;
   final String tag;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(name, style: PitStopText.sectionTitle),
-              const SizedBox(height: PitStopSpacing.xs),
-              Text(vehicle, style: PitStopText.caption),
-              const SizedBox(height: PitStopSpacing.xs),
-              Text(issue, style: PitStopText.body),
-            ],
-          ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: PitStopColors.paper,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(PitStopSpacing.md),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const _BlockCustomerAvatar(),
+            const SizedBox(width: PitStopSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(name, style: PitStopText.sectionTitle),
+                  const SizedBox(height: PitStopSpacing.xs),
+                  Text(vehicle, style: PitStopText.caption),
+                  const SizedBox(height: PitStopSpacing.xs),
+                  Text(issue, style: PitStopText.body),
+                  const SizedBox(height: PitStopSpacing.sm),
+                  Wrap(
+                    spacing: PitStopSpacing.sm,
+                    runSpacing: PitStopSpacing.xs,
+                    children: [
+                      _StatusChip(label: mood),
+                      _StatusChip(label: tag),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: PitStopSpacing.md),
-        _StatusChip(label: tag),
-      ],
+      ),
+    );
+  }
+}
+
+class _BlockCustomerAvatar extends StatelessWidget {
+  const _BlockCustomerAvatar();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      key: Key('customer-avatar-placeholder'),
+      width: 64,
+      height: 72,
+      child: Stack(
+        alignment: Alignment.topCenter,
+        children: [
+          Positioned(top: 0, child: _PixelBox(width: 36, height: 28)),
+          Positioned(
+            top: 8,
+            left: 18,
+            child: _PixelDot(color: PitStopColors.diagCool900),
+          ),
+          Positioned(
+            top: 8,
+            right: 18,
+            child: _PixelDot(color: PitStopColors.diagCool900),
+          ),
+          Positioned(
+            top: 28,
+            child: _PixelBox(
+              width: 48,
+              height: 34,
+              color: PitStopColors.diagCool500,
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 12,
+            child: _PixelBox(
+              width: 16,
+              height: 14,
+              color: PitStopColors.shopWarm700,
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 12,
+            child: _PixelBox(
+              width: 16,
+              height: 14,
+              color: PitStopColors.shopWarm700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PixelBox extends StatelessWidget {
+  const _PixelBox({
+    required this.width,
+    required this.height,
+    this.color = PitStopColors.shopWarm300,
+  });
+
+  final double width;
+  final double height;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color,
+        border: Border.all(color: PitStopColors.shopWarm700, width: 2),
+      ),
+      child: SizedBox(width: width, height: height),
+    );
+  }
+}
+
+class _PixelDot extends StatelessWidget {
+  const _PixelDot({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(color: color),
+      child: const SizedBox(width: 6, height: 6),
     );
   }
 }

@@ -11,6 +11,11 @@ void main() {
     expect(find.text('일일 요약'), findsOneWidget);
     expect(find.text('손님 큐'), findsOneWidget);
     expect(find.text('작업대 상태'), findsOneWidget);
+    expect(
+      find.byKey(const Key('customer-avatar-placeholder')),
+      findsOneWidget,
+    );
+    expect(find.text('예산 민감'), findsOneWidget);
 
     await tester.drag(find.byType(Scrollable), const Offset(0, -500));
     await tester.pump();
