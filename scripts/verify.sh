@@ -105,11 +105,15 @@ else
   if [ -z "$KEYWORDS" ]; then
     echo "  키워드 없음. 스킵."
   else
-    if [ "$MODE" = "changed" ] && [ -n "$CHANGED" ]; then
-      TARGETS="$CHANGED"
-    else
-      TARGETS=$(git ls-files | grep -vE '\.(png|jpg|jpeg|gif|webp|ico|svg|pdf|zip|jar|so|dll)$' || true)
-    fi
+    if [ "$MODE" = "changed" ]; then
+  if [ -n "$CHANGED" ]; then
+    TARGETS="$CHANGED"
+  else
+    TARGETS=""
+  fi
+else
+  TARGETS=$(git ls-files | grep -vE '\.(png|jpg|jpeg|gif|webp|ico|svg|pdf|zip|jar|so|dll)$' || true)
+fi
 
     FOUND=0
     while IFS= read -r kw; do
