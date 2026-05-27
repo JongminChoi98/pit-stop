@@ -1,0 +1,80 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+title: Part
+description: 부품 카탈로그 항목.
+
+type: object
+required: [id, name, category, brand_type, price_krw]
+additionalProperties: false
+
+properties:
+  id:
+    type: string
+    pattern: "^[a-z0-9-]+$"
+
+  name:
+    type: string
+    description: 한국어 부품명 (예: 엔진오일 필터)
+
+  category:
+    type: string
+    enum:
+      - engine
+      - oil_filter
+      - air_filter
+      - cabin_filter
+      - fuel_filter
+      - spark_plug
+      - brake_pad
+      - brake_disc
+      - tire
+      - battery
+      - belt
+      - coolant
+      - oil
+      - light_bulb
+      - wiper_blade
+      - suspension
+      - bearing
+      - sensor
+      - body_part
+      - other
+
+  brand_type:
+    type: string
+    enum: [oem, aftermarket, refurbished, regen]
+
+  price_krw:
+    type: object
+    required: [min, max]
+    properties:
+      min: { type: integer, minimum: 0 }
+      max: { type: integer }
+
+  unit:
+    type: string
+    enum: [piece, set, liter, milliliter, kit]
+    default: piece
+
+  compatible_vehicles:
+    type: array
+    description: 호환 차량 (비어 있으면 범용)
+    items:
+      type: object
+      properties:
+        vehicle_id: { type: string }
+        make: { type: string }
+        model: { type: string }
+        generation_code: { type: string }
+
+  replacement_interval_km:
+    type: integer
+
+  replacement_interval_months:
+    type: integer
+
+  notes:
+    type: string
+
+  references:
+    type: array
+    items: { type: string }

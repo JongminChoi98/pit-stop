@@ -1,0 +1,22 @@
+actual_issues:
+  - description: GDI 흡기 밸브 카본 누적으로 인한 경미한 미스파이어
+    severity: moderate
+  - dtc_id: P0420
+    description: 카본 누적 → 미연소 연료 유입 → 촉매 약화 (2차 결과)
+    severity: moderate
+diagnostic_hints:
+  - 시동 직후 공회전 안정, 부하 시 약한 떨림 (미스파이어 신호)
+  - 배기에서 약간의 황 냄새
+  - 주행거리 13만 km (GDI 카본 누적 의심 구간)
+  - 동시 발생 코드 P0300대(미스파이어) 의심
+required_repairs:
+  - action: 스캔툴로 동시 코드 재확인 및 라이브 데이터 점검
+    estimated_time_min: 15
+  - action: 흡기 밸브 카본 제거 (워크믹스 또는 흡기 클리닝)
+    estimated_time_min: 60
+  - action: 후방 산소센서 점검, 필요 시 교체
+    part_needed: 후방 산소센서 (OEM)
+    estimated_time_min: 30
+  - action: 코드 클리어 후 시운전
+    estimated_time_min: 15
+estimated_duration_min: 5

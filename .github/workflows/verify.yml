@@ -1,0 +1,270 @@
+name: verify
+
+# pit-stop CI 파이프라인
+# 역할:
+#   1. classify       — PR 변경 파일을 Tier A/B/C로 분류
+#   2. tier-c-guard   — Tier C 파일을 종민 외 작성자가 수정했으면 차단
+#   3. forbidden-keywords — 회사 특정 산출물 키워드 검색
+#   4. schema-validation  — assets/content/ 의 YAML 스키마 검증
+#   5. auto-label     — Tier A only면 auto-mergeable, 아니면 needs-human-review
+#   6. flutter-check  — Flutter 코드 추가 후 활성화 (현재 placeholder)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # ──────────────────────────────────────────────────────────────
+  # Job 1: 변경 파일 Tier 분류
+  # ──────────────────────────────────────────────────────────────
+  classify:
+    name: Tier 분류
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      tier_a_only: ${{ steps.classify.outputs.tier_a_only }}
+      touches_tier_c: ${{ steps.classify.outputs.touches_tier_c }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 변경 파일 추출
+        id: changes
+        uses: tj-actions/changed-files@v44
+
+      - name: Tier 분류
+        id: classify
+        env:
+          CHANGED_FILES: ${{ steps.changes.outputs.all_changed_files }}
+        run: |
+          python3 << 'EOF'
+          import os, re
+
+          changed = os.environ.get('CHANGED_FILES', '').split()
+
+          TIER_C = [
+              r'^pit-stop-charter\.md$',
+              r'^AGENTS\.md$',
+              r'^\.codex/boundaries\.md$',
+              r'^\.codex/schemas/',
+              r'^\.codex/forbidden_keywords\.txt$',
+              r'^\.github/',
+              r'^scripts/verify\.sh$',
+          ]
+          TIER_A = [
+              r'^assets/content/',
+              r'^lib/',
+              r'^test/',
+              r'^\.codex/examples/',
+          ]
+
+          touches_tier_c = False
+          tier_a_only = True if changed else False
+
+          for f in changed:
+              if not f:
+                  continue
+              if any(re.match(p, f) for p in TIER_C):
+                  touches_tier_c = True
+                  tier_a_only = False
+                  print(f"  [Tier C] {f}")
+              elif any(re.match(p, f) for p in TIER_A):
+                  print(f"  [Tier A] {f}")
+              else:
+                  tier_a_only = False
+                  print(f"  [Tier B] {f}")
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+              fh.write(f"tier_a_only={'true' if tier_a_only else 'false'}\n")
+              fh.write(f"touches_tier_c={'true' if touches_tier_c else 'false'}\n")
+
+          print(f"\n결과: tier_a_only={tier_a_only}, touches_tier_c={touches_tier_c}")
+          EOF
+
+  # ──────────────────────────────────────────────────────────────
+  # Job 2: Tier C 차단 (작성자가 종민이 아니면 fail)
+  # ──────────────────────────────────────────────────────────────
+  tier-c-guard:
+    name: Tier C 가드
+    needs: classify
+    if: github.event_name == 'pull_request' && needs.classify.outputs.touches_tier_c == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 작성자 확인
+        run: |
+          AUTHOR="${{ github.event.pull_request.user.login }}"
+          OWNER="JongminChoi98"
+          if [ "$AUTHOR" != "$OWNER" ]; then
+            echo "::error::Tier C 파일은 $OWNER 만 수정 가능. 현재 작성자: $AUTHOR"
+            echo "::error::헌장·AGENTS.md·boundaries·schemas·workflows 등은 직접 커밋만 허용됨."
+            exit 1
+          fi
+          echo "✓ Tier C 수정 허용 ($OWNER 본인)"
+
+  # ──────────────────────────────────────────────────────────────
+  # Job 3: 금지 키워드 검색 (회사 특정 산출물)
+  # ──────────────────────────────────────────────────────────────
+  forbidden-keywords:
+    name: 금지 키워드 검사
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 변경 파일 추출
+        id: changes
+        uses: tj-actions/changed-files@v44
+
+      - name: 키워드 검색
+        env:
+          CHANGED_FILES: ${{ steps.changes.outputs.all_changed_files }}
+        run: |
+          if [ ! -f .codex/forbidden_keywords.txt ]; then
+            echo "::warning::.codex/forbidden_keywords.txt 없음. 스킵."
+            exit 0
+          fi
+
+          # 주석/빈 줄 제외하고 키워드 추출
+          mapfile -t KEYWORDS < <(grep -vE '^[[:space:]]*#|^[[:space:]]*$' .codex/forbidden_keywords.txt)
+
+          if [ ${#KEYWORDS[@]} -eq 0 ]; then
+            echo "키워드 없음. 스킵."
+            exit 0
+          fi
+
+          echo "검사 키워드 ${#KEYWORDS[@]}개"
+
+          FOUND=0
+          for f in $CHANGED_FILES; do
+            if [ ! -f "$f" ]; then continue; fi
+            for kw in "${KEYWORDS[@]}"; do
+              if grep -niF -- "$kw" "$f" >/dev/null 2>&1; then
+                echo "::error file=$f::금지 키워드 발견: '$kw'"
+                grep -niF -- "$kw" "$f" | head -5
+                FOUND=1
+              fi
+            done
+          done
+
+          if [ $FOUND -eq 1 ]; then
+            echo ""
+            echo "::error::헌장 원칙 6 위반 가능성. 회사 특정 산출물 인용 금지."
+            exit 1
+          fi
+          echo "✓ 금지 키워드 없음"
+
+  # ──────────────────────────────────────────────────────────────
+  # Job 4: 콘텐츠 스키마 검증
+  # ──────────────────────────────────────────────────────────────
+  schema-validation:
+    name: 스키마 검증
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 검증 도구 설치
+        run: pip install pyyaml jsonschema
+
+      - name: assets/content/ 검증
+        run: |
+          python3 << 'EOF'
+          import sys, yaml
+          from pathlib import Path
+          from jsonschema import validate, ValidationError
+
+          SCHEMA_DIR = Path('.codex/schemas')
+          CONTENT_DIR = Path('assets/content')
+
+          TYPE_TO_SCHEMA = {
+              'vehicles': 'vehicle.yaml',
+              'dtc': 'dtc.yaml',
+              'customers': 'customer.yaml',
+              'scenarios': 'scenario.yaml',
+              'procedures': 'procedure.yaml',
+              'services': 'service.yaml',
+              'parts': 'part.yaml',
+          }
+
+          if not CONTENT_DIR.exists():
+              print("assets/content/ 없음. 스킵.")
+              sys.exit(0)
+
+          schemas = {}
+          for type_name, schema_file in TYPE_TO_SCHEMA.items():
+              path = SCHEMA_DIR / schema_file
+              if path.exists():
+                  with open(path) as f:
+                      schemas[type_name] = yaml.safe_load(f)
+
+          errors = 0
+          checked = 0
+          for type_dir in CONTENT_DIR.iterdir():
+              if not type_dir.is_dir():
+                  continue
+              type_name = type_dir.name
+              if type_name not in schemas:
+                  print(f"::warning::알 수 없는 콘텐츠 타입 디렉토리: {type_name}")
+                  continue
+
+              schema = schemas[type_name]
+              for content_file in type_dir.glob('*.yaml'):
+                  checked += 1
+                  with open(content_file) as f:
+                      try:
+                          data = yaml.safe_load(f)
+                      except yaml.YAMLError as e:
+                          print(f"::error file={content_file}::YAML 파싱 실패: {e}")
+                          errors += 1
+                          continue
+                  try:
+                      validate(instance=data, schema=schema)
+                      print(f"  ✓ {content_file}")
+                  except ValidationError as e:
+                      print(f"::error file={content_file}::스키마 위반: {e.message}")
+                      errors += 1
+
+          print(f"\n총 {checked}개 검증, {errors}개 오류")
+          sys.exit(1 if errors > 0 else 0)
+          EOF
+
+  # ──────────────────────────────────────────────────────────────
+  # Job 5: 자동 라벨링
+  # ──────────────────────────────────────────────────────────────
+  auto-label:
+    name: 자동 라벨
+    needs: classify
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - name: auto-mergeable (Tier A only)
+        if: needs.classify.outputs.tier_a_only == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['auto-mergeable']
+            });
+
+      - name: needs-human-review (Tier B/C 포함)
+        if: needs.classify.outputs.tier_a_only != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |

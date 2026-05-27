@@ -1,0 +1,36 @@
+# pit-stop / CODEOWNERS
+#
+# 어떤 경로의 PR이 누구의 승인을 받아야 하는지 정의.
+# Branch protection rule "Require review from Code Owners"가 켜져 있을 때 강제됨.
+#
+# 룰:
+# - Tier A (assets/content/**, lib/**, test/**, .codex/examples/**)는 미명시
+#   → 코드 소유자 없음 → CI green 시 자동 머지 가능
+# - Tier B/C 경로는 모두 @YOUR_GITHUB_USERNAME 승인 필요
+#
+# ⚠️ 아래 @YOUR_GITHUB_USERNAME 을 본인의 GitHub 사용자명으로 일괄 치환하세요.
+#    예: @jongmin-kar 또는 @jmsong 등
+
+# === Tier B — 제안 영역 (종민 검토 필수) ===
+/pubspec.yaml          @JongminChoi98
+/pubspec.lock          @JongminChoi98
+/android/              @JongminChoi98
+/ios/                  @JongminChoi98
+/README.md             @JongminChoi98
+/analysis_options.yaml @JongminChoi98
+/.gitignore            @JongminChoi98
+
+# === Tier C — 금지 영역 (종민만 직접 커밋) ===
+/pit-stop-charter.md               @JongminChoi98
+/AGENTS.md                         @JongminChoi98
+/.codex/boundaries.md              @JongminChoi98
+/.codex/schemas/                   @JongminChoi98
+/.codex/forbidden_keywords.txt     @JongminChoi98
+/.github/                          @JongminChoi98
+/scripts/verify.sh                 @JongminChoi98
+
+# === Tier A 경로 미명시 (자동 머지 후보) ===
+# /assets/content/    ← 미명시
+# /lib/               ← 미명시
+# /test/              ← 미명시
+# /.codex/examples/   ← 미명시

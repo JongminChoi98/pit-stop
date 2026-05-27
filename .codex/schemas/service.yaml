@@ -1,0 +1,58 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+title: Service
+description: 정비소 서비스 메뉴 항목. 손님 청구·일정의 단위.
+
+type: object
+required: [id, name, category, base_price_krw, base_duration_min]
+additionalProperties: false
+
+properties:
+  id:
+    type: string
+    pattern: "^[a-z0-9-]+$"
+
+  name:
+    type: string
+    description: 손님에게 보이는 한국어 서비스명 (예: 엔진오일 교환)
+
+  category:
+    type: string
+    enum:
+      - maintenance
+      - repair
+      - diagnostic
+      - inspection
+      - emergency
+      - cosmetic
+
+  description:
+    type: string
+    description: 손님용 짧은 설명 (1-2 문장)
+
+  base_price_krw:
+    type: object
+    required: [min, max]
+    description: 한국 일반 정비소 시세 범위
+    properties:
+      min: { type: integer, minimum: 0 }
+      max: { type: integer }
+
+  base_duration_min:
+    type: integer
+    minimum: 1
+
+  procedure_ids:
+    type: array
+    description: 이 서비스가 포함하는 정비 절차들
+    items: { type: string }
+
+  applicable_to:
+    type: object
+    properties:
+      makes: { type: array, items: { type: string } }
+      fuels: { type: array, items: { type: string } }
+      all: { type: boolean }
+
+  notes:
+    type: string
+    description: 한국 시장 특이 사항 (예: LPG 차량 별도 단가)

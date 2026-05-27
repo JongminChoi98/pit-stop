@@ -1,0 +1,22 @@
+id: park-50s-busan-merchant
+display_name: 박 사장님
+age_range: "50s"
+gender: male
+region: 부산 사상구
+dialect: busan
+occupation_category: 자영업 (소형 화물 운송)
+vehicle_owned_id: hyundai-avante-ad
+vehicle_relationship: owner
+visit_frequency: regular
+communication_style:
+  - polite
+  - terse
+  - bargaining
+difficulty: 2
+backstory: |
+  부산에서 10년 넘게 소형 화물 운송업. 아반떼는 출퇴근 및 영업용.
+  단골이지만 가격을 꼼꼼히 따짐. 정비사를 신뢰하되 견적 설명을 요구.
+signature_phrases:
+  - "사장님, 이거 꼭 해야 됩니꺼?"
+  - "단골인데 좀 깎아주이소."
+  - "급한 거 아이면 다음에 합시다."

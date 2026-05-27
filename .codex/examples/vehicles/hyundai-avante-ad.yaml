@@ -1,0 +1,53 @@
+id: hyundai-avante-ad
+make: 현대
+model: 아반떼
+generation_code: AD
+year_range:
+  start: 2015
+  end: 2020
+body_type: sedan
+trims:
+  - 스타일
+  - 스마트
+  - 모던
+  - 프리미엄
+engine_options:
+  # 전기형 (2015.09 ~ 2018.09)
+  - displacement_cc: 1591
+    fuel: gasoline
+    power_ps: 132
+    engine_code: G4FJ
+  # 후기형 (2018.09 ~ 2020.03) 추가
+  - displacement_cc: 1598
+    fuel: gasoline
+    power_ps: 123
+    engine_code: G4FM
+  # 디젤 (전 기간)
+  - displacement_cc: 1582
+    fuel: diesel
+    power_ps: 136
+    engine_code: D4FB
+  # LPi (전 기간)
+  - displacement_cc: 1591
+    fuel: lpg
+    power_ps: 120
+    engine_code: L4FA
+transmission_options: [manual, automatic, dct]
+common_issues:
+  - description: 1.6 GDI 감마 엔진 오일 소모 (주로 MD 세대, AD에서도 일부 신고)
+    severity: medium
+    source: |
+      나무위키 '현대 감마 엔진' 항목, 시사저널e 보도 등.
+      현대 보증 정책: 10년/16만km 조건부 (감마 GDI).
+  - description: 디젤 모델 DPF 차압 상승 (단거리 위주 주행)
+    severity: low
+    source: 디젤 일반 이슈
+popularity_in_korea: very_high
+market_notes: |
+  국내 베스트셀러 준중형 세단. LPi 트림은 자영업자·렌터카·장애인용 비중 높음.
+  2018.09 페이스리프트로 '더 뉴 아반떼' 명명, 외관 및 가솔린 엔진(G4FM) 변경.
+  아반떼 스포츠(AD SPORT, 1.6 T-GDI 204PS)는 별도 차종.
+references:
+  - https://namu.wiki/w/현대%20아반떼/6세대
+  - https://namu.wiki/w/현대%20감마%20엔진
+  - https://auto.danawa.com/auto/?Work=model&Model=3259

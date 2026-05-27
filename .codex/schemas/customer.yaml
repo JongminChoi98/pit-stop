@@ -1,0 +1,84 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+title: Customer
+description: 한국 정비소에 실제 올 법한 페르소나. 비하·조롱 금지, 캐리커처 허용.
+
+type: object
+required: [id, display_name, age_range, region, vehicle_owned_id, communication_style, difficulty]
+additionalProperties: false
+
+properties:
+  id:
+    type: string
+    pattern: "^[a-z0-9-]+$"
+
+  display_name:
+    type: string
+    description: 표시명 (가명 또는 별명). 실명·회사 임직원명 금지.
+
+  age_range:
+    type: string
+    enum: ["20s", "30s", "40s", "50s", "60s", "70s+"]
+
+  gender:
+    type: string
+    enum: [male, female, unspecified]
+
+  region:
+    type: string
+    description: 한국 지역 (예: 부산, 울산, 부산 동래구)
+
+  dialect:
+    type: string
+    enum: [standard, busan, ulsan, daegu, gyeongsang_other, gwangju, jeolla_other, jeju, other]
+    default: standard
+
+  occupation_category:
+    type: string
+    description: 직업군 일반 표현 (예: 화물기사, 자영업, 사무직, 농업, 학생, 은퇴자). 구체 회사명 금지.
+
+  vehicle_owned_id:
+    type: string
+    description: 소유 차량의 id
+
+  vehicle_relationship:
+    type: string
+    enum: [owner, family_car, fleet, borrowed]
+    default: owner
+
+  visit_frequency:
+    type: string
+    enum: [regular, occasional, first_time]
+
+  communication_style:
+    type: array
+    minItems: 1
+    description: 복수 선택. 일관성 있게 조합.
+    items:
+      type: string
+      enum:
+        - polite
+        - terse
+        - chatty
+        - anxious
+        - skeptical
+        - aggressive
+        - knowledgeable
+        - confused
+        - hurried
+        - patient
+        - bargaining
+
+  difficulty:
+    type: integer
+    minimum: 1
+    maximum: 5
+    description: 응대 난이도 1(쉬움)~5(까다로움)
+
+  backstory:
+    type: string
+    description: 1-2 문장 배경
+
+  signature_phrases:
+    type: array
+    description: 이 손님 특유의 한국어 표현 (사투리 포함)
+    items: { type: string }

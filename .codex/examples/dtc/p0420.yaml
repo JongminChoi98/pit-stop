@@ -1,0 +1,41 @@
+id: P0420
+type: generic
+title: 촉매 효율 임계값 미만 (Bank 1)
+description: |
+  뱅크 1 촉매 변환기의 효율이 정상 범위 아래로 떨어졌음을 ECU가 감지함.
+  배기 가스 정화 능력 저하를 의미하며, 정기검사 통과 불가의 흔한 원인.
+affected_systems: [emissions]
+possible_causes:
+  - cause: 촉매 변환기 수명 도달 또는 손상
+    likelihood: very_common
+    notes: 주행거리 15만 km 이상에서 흔함
+  - cause: 후방 산소센서(O2) 노후 또는 고장
+    likelihood: common
+    notes: 센서 노후가 코드를 유발할 수 있어 촉매 교체 전 점검 필수
+  - cause: 전방 산소센서 부정확
+    likelihood: occasional
+  - cause: 배기 라인 누설 (촉매 전단)
+    likelihood: occasional
+  - cause: 엔진 미스파이어로 인한 미연소 연료가 촉매 손상
+    likelihood: occasional
+    notes: P0300대 코드 동시 발생 시 의심
+diagnostic_steps:
+  - step: 1
+    action: 스캔툴로 동시 발생 코드 확인 (P0300대 미스파이어 동반 여부)
+    if_pass: 단독 P0420이면 다음 단계
+    if_fail: 미스파이어 코드 우선 해결
+  - step: 2
+    action: 전방/후방 산소센서 라이브 데이터 확인 (전방은 진동, 후방은 안정적이어야 정상)
+    if_pass: 센서 정상, 다음 단계
+    if_fail: 산소센서 교체 후 재검사
+  - step: 3
+    action: 촉매 전후 온도 차 측정 (전방이 더 낮으면 촉매 손상)
+    if_fail: 촉매 교체
+  - step: 4
+    action: 배기 누설 점검 (시각, 청각)
+    if_fail: 누설 부위 보수 후 재검사
+typical_repair_cost_krw:
+  min: 80000
+  max: 1500000
+references:
+  - https://www.obd-codes.com/p0420

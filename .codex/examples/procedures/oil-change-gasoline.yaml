@@ -1,0 +1,47 @@
+id: oil-change-gasoline
+title: 엔진오일 교환 - 일반 가솔린
+category: oil_change
+applicable_vehicles:
+  fuels: [gasoline, hev]
+estimated_duration_min: 25
+difficulty: 1
+required_tools:
+  - 라쳇 세트
+  - 오일 필터 렌치
+  - 오일 받이 (드레인 팬)
+  - 깔때기
+  - 잭 및 잭 스탠드 (리프트 미사용 시)
+required_parts:
+  - part_ref: 엔진오일 (차량 규격)
+    quantity: 4
+  - part_ref: 엔진오일 필터
+    quantity: 1
+  - part_ref: 드레인 와셔
+    quantity: 1
+steps:
+  - step: 1
+    action: 차량을 리프트 또는 잭으로 들어올림
+    warning: 잭 사용 시 반드시 잭 스탠드 병행
+  - step: 2
+    action: 엔진 5-10분 워밍업 (오일 점도 낮춤)
+    warning: 과열 시 화상 위험
+  - step: 3
+    action: 드레인 플러그 풀고 폐오일 배출 (10-15분 대기)
+  - step: 4
+    action: 드레인 와셔 신품 교체 후 드레인 플러그 체결
+    torque_nm: 35
+  - step: 5
+    action: 오일 필터 분리 (필터 렌치)
+  - step: 6
+    action: 신품 필터 가스켓에 신유 도포, 손 체결 후 3/4 회전 추가
+  - step: 7
+    action: 주유구로 규정량 신유 주입
+  - step: 8
+    action: 시동 걸어 누유 점검 (1-2분)
+  - step: 9
+    action: 시동 끄고 5분 대기 후 오일량 재확인
+safety_notes:
+  - 엔진 작업 전 차량 정지 및 키 제거
+  - 폐오일은 지정 폐기물로 처리
+references:
+  - 차량별 정비 매뉴얼 참조

@@ -1,0 +1,20 @@
+id: mobis-oil-filter-avante-ad
+name: 엔진오일 필터 (현대모비스)
+category: oil_filter
+brand_type: oem
+price_krw:
+  min: 6000
+  max: 12000
+unit: piece
+compatible_vehicles:
+  - vehicle_id: hyundai-avante-ad
+    make: 현대
+    model: 아반떼
+    generation_code: AD
+replacement_interval_km: 10000
+replacement_interval_months: 12
+notes: |
+  현대모비스 OEM. 1.6 가솔린/디젤 공용.
+  사제 필터(보쉬, 만 등)도 호환 가능하나 OEM 권장.
+references:
+  - https://mobisparts.com

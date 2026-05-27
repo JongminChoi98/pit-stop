@@ -1,0 +1,84 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+title: Vehicle
+description: 한국에서 실제 운행되는 차종. 공개 정보 기반.
+
+type: object
+required: [id, make, model, generation_code, year_range, body_type, popularity_in_korea]
+additionalProperties: false
+
+properties:
+  id:
+    type: string
+    pattern: "^[a-z0-9-]+$"
+    description: 케밥 케이스 (예: hyundai-avante-ad)
+
+  make:
+    type: string
+    description: 제조사 한국어명 (예: 현대, 기아, 쌍용, 르노코리아, BMW, 메르세데스-벤츠)
+
+  model:
+    type: string
+    description: 모델명 (예: 아반떼, 쏘나타)
+
+  generation_code:
+    type: string
+    description: 세대 코드. 한국 차 식별 필수 (예: AD, DN8, CN7, MD)
+
+  year_range:
+    type: object
+    required: [start]
+    properties:
+      start: { type: integer, minimum: 1980 }
+      end: { type: ["integer", "null"], description: 현행 모델은 null }
+
+  body_type:
+    type: string
+    enum: [sedan, suv, hatchback, wagon, coupe, pickup, van, mpv]
+
+  trims:
+    type: array
+    items: { type: string }
+
+  engine_options:
+    type: array
+    items:
+      type: object
+      required: [fuel]
+      properties:
+        displacement_cc: { type: integer }
+        fuel: { type: string, enum: [gasoline, diesel, lpg, hev, phev, bev, hydrogen] }
+        power_ps: { type: integer }
+        engine_code: { type: string }
+
+  transmission_options:
+    type: array
+    items: { type: string, enum: [manual, automatic, dct, cvt, single_speed] }
+
+  common_issues:
+    type: array
+    description: 주요 결함 패턴. 공개 정보 기반만.
+    items:
+      type: object
+      required: [description, severity]
+      properties:
+        description: { type: string }
+        mileage_range_km:
+          type: array
+          items: { type: integer }
+          minItems: 2
+          maxItems: 2
+        severity: { type: string, enum: [low, medium, high] }
+        source: { type: string, description: 출처 (커뮤니티, 리콜, 정비 매뉴얼 등) }
+
+  popularity_in_korea:
+    type: string
+    enum: [very_high, high, medium, low, niche]
+    description: 게임 내 등장 빈도 결정 요인
+
+  market_notes:
+    type: string
+    description: 한국 시장 특수 사항 (LPG 개조, 동절기 이슈 등)
+
+  references:
+    type: array
+    items: { type: string, description: URL 또는 출처 명 }

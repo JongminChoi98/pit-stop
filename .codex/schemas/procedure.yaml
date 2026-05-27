@@ -1,0 +1,100 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+title: Procedure
+description: 정비 절차 정의. 헌장 명시 코어 엔티티.
+
+type: object
+required: [id, title, category, estimated_duration_min, difficulty, steps]
+additionalProperties: false
+
+properties:
+  id:
+    type: string
+    pattern: "^[a-z0-9-]+$"
+
+  title:
+    type: string
+    description: 절차 이름 (예: 엔진오일 교환 - 가솔린)
+
+  category:
+    type: string
+    enum:
+      - oil_change
+      - filter_change
+      - brake
+      - battery
+      - tire
+      - belt
+      - coolant
+      - transmission
+      - suspension
+      - electrical
+      - diagnostic
+      - body
+      - hvac
+      - emission
+      - other
+
+  applicable_vehicles:
+    type: object
+    description: 적용 가능 차량 필터. 가장 구체적인 것부터 매칭.
+    properties:
+      vehicle_ids:
+        type: array
+        items: { type: string }
+      makes:
+        type: array
+        items: { type: string }
+      body_types:
+        type: array
+        items: { type: string }
+      fuels:
+        type: array
+        items: { type: string }
+      all:
+        type: boolean
+        description: true면 모든 차량에 적용
+
+  estimated_duration_min:
+    type: integer
+    minimum: 1
+    maximum: 120
+    description: 실제 정비 소요 시간. 게임 내 시간 압축은 별도.
+
+  difficulty:
+    type: integer
+    minimum: 1
+    maximum: 5
+    description: 정비사 숙련도 1(견습)~5(마스터)
+
+  required_tools:
+    type: array
+    items: { type: string, description: 공구 일반명 (예: 라쳇 세트, 토크 렌치) }
+
+  required_parts:
+    type: array
+    items:
+      type: object
+      required: [part_ref]
+      properties:
+        part_ref: { type: string, description: part id 또는 일반 부품명 }
+        quantity: { type: integer, default: 1 }
+
+  steps:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      required: [step, action]
+      properties:
+        step: { type: integer, minimum: 1 }
+        action: { type: string }
+        torque_nm: { type: number, description: 토크 명시 필요 시 }
+        warning: { type: string }
+
+  safety_notes:
+    type: array
+    items: { type: string }
+
+  references:
+    type: array
+    items: { type: string }
