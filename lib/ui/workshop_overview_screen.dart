@@ -61,7 +61,16 @@ class _WorkshopWorldPanel extends StatefulWidget {
 }
 
 class _WorkshopWorldPanelState extends State<_WorkshopWorldPanel> {
+  static const double _stageWidth = 920;
+  static const double _mechanicWidth = 70;
+  static const double _mechanicBottom = 62;
+  static const double _stageInset = 24;
+  static const double _walkableGroundTop = 214;
+
   _WorldSpot _selected = _WorldSpot.customer;
+  double _mechanicLeft = 350;
+  double _targetMarkerLeft = 385;
+  bool _hasWalkTarget = false;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -94,86 +103,101 @@ class _WorkshopWorldPanelState extends State<_WorkshopWorldPanel> {
                   controller: _scrollController,
                   scrollDirection: Axis.horizontal,
                   child: SizedBox(
-                    width: 920,
-                    child: Stack(
-                      key: const Key('workshop-world-panel'),
-                      children: [
-                        const Positioned.fill(
-                          child: CustomPaint(
-                            painter: _SideScrollWorkshopPainter(),
-                          ),
-                        ),
-                        _StageHotspot(
-                          left: 56,
-                          bottom: 74,
-                          child: _WorldHotspot(
-                            key: const Key('world-hotspot-desk'),
-                            label: '접수대',
-                            selected: _selected == _WorldSpot.desk,
-                            onTap: () => _select(_WorldSpot.desk),
-                            child: const _BlockReceptionDesk(),
-                          ),
-                        ),
-                        _StageHotspot(
-                          left: 216,
-                          bottom: 60,
-                          child: _WorldHotspot(
-                            key: const Key('world-hotspot-customer'),
-                            label: '첫 손님',
-                            selected: _selected == _WorldSpot.customer,
-                            onTap: () => _select(_WorldSpot.customer),
-                            child: const _BlockCustomerAvatar(),
-                          ),
-                        ),
-                        _StageHotspot(
-                          left: 350,
-                          bottom: 62,
-                          child: _WorldHotspot(
-                            key: const Key('world-hotspot-mechanic'),
-                            label: '정비사',
-                            selected: _selected == _WorldSpot.mechanic,
-                            onTap: () => _select(_WorldSpot.mechanic),
-                            child: const _BlockMechanicAvatar(),
-                          ),
-                        ),
-                        _StageHotspot(
-                          left: 486,
-                          bottom: 62,
-                          child: _WorldHotspot(
-                            key: const Key('world-hotspot-car'),
-                            label: '대기 차량',
-                            selected: _selected == _WorldSpot.car,
-                            onTap: () => _select(_WorldSpot.car),
-                            child: const _BlockCar(),
-                          ),
-                        ),
-                        _StageHotspot(
-                          left: 690,
-                          bottom: 68,
-                          child: _WorldHotspot(
-                            key: const Key('world-hotspot-lift'),
-                            label: '1번 리프트',
-                            selected: _selected == _WorldSpot.lift,
-                            onTap: () => _select(_WorldSpot.lift),
-                            child: const _BlockLift(),
-                          ),
-                        ),
-                        Positioned(
-                          left: 820,
-                          bottom: 48,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: PitStopColors.diagCool900,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: PitStopColors.shopWarm700,
-                                width: 2,
-                              ),
+                    width: _stageWidth,
+                    child: GestureDetector(
+                      key: const Key('world-tap-layer'),
+                      behavior: HitTestBehavior.opaque,
+                      onTapUp: _walkMechanicTo,
+                      child: Stack(
+                        key: const Key('workshop-world-panel'),
+                        children: [
+                          const Positioned.fill(
+                            child: CustomPaint(
+                              painter: _SideScrollWorkshopPainter(),
                             ),
-                            child: const SizedBox(width: 54, height: 94),
                           ),
-                        ),
-                      ],
+                          if (_hasWalkTarget)
+                            Positioned(
+                              key: const Key('walk-target-marker'),
+                              left: _targetMarkerLeft,
+                              bottom: 44,
+                              child: const _WalkTargetMarker(),
+                            ),
+                          _StageHotspot(
+                            left: 56,
+                            bottom: 74,
+                            child: _WorldHotspot(
+                              key: const Key('world-hotspot-desk'),
+                              label: '접수대',
+                              selected: _selected == _WorldSpot.desk,
+                              onTap: () => _select(_WorldSpot.desk),
+                              child: const _BlockReceptionDesk(),
+                            ),
+                          ),
+                          _StageHotspot(
+                            left: 216,
+                            bottom: 60,
+                            child: _WorldHotspot(
+                              key: const Key('world-hotspot-customer'),
+                              label: '첫 손님',
+                              selected: _selected == _WorldSpot.customer,
+                              onTap: () => _select(_WorldSpot.customer),
+                              child: const _BlockCustomerAvatar(),
+                            ),
+                          ),
+                          AnimatedPositioned(
+                            key: const Key('mechanic-stage-position'),
+                            duration: const Duration(milliseconds: 520),
+                            curve: Curves.easeOutCubic,
+                            left: _mechanicLeft,
+                            bottom: _mechanicBottom,
+                            child: _WorldHotspot(
+                              key: const Key('world-hotspot-mechanic'),
+                              label: '정비사',
+                              selected: _selected == _WorldSpot.mechanic,
+                              onTap: () => _select(_WorldSpot.mechanic),
+                              child: const _BlockMechanicAvatar(),
+                            ),
+                          ),
+                          _StageHotspot(
+                            left: 486,
+                            bottom: 62,
+                            child: _WorldHotspot(
+                              key: const Key('world-hotspot-car'),
+                              label: '대기 차량',
+                              selected: _selected == _WorldSpot.car,
+                              onTap: () => _select(_WorldSpot.car),
+                              child: const _BlockCar(),
+                            ),
+                          ),
+                          _StageHotspot(
+                            left: 690,
+                            bottom: 68,
+                            child: _WorldHotspot(
+                              key: const Key('world-hotspot-lift'),
+                              label: '1번 리프트',
+                              selected: _selected == _WorldSpot.lift,
+                              onTap: () => _select(_WorldSpot.lift),
+                              child: const _BlockLift(),
+                            ),
+                          ),
+                          Positioned(
+                            left: 820,
+                            bottom: 48,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: PitStopColors.diagCool900,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: PitStopColors.shopWarm700,
+                                  width: 2,
+                                ),
+                              ),
+                              child: const SizedBox(width: 54, height: 94),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -181,7 +205,7 @@ class _WorkshopWorldPanelState extends State<_WorkshopWorldPanel> {
             ),
           ),
           const SizedBox(height: PitStopSpacing.md),
-          _WorldStatusStrip(spot: _selected),
+          _WorldStatusStrip(spot: _selected, detailOverride: _detailOverride),
         ],
       ),
     );
@@ -191,6 +215,32 @@ class _WorkshopWorldPanelState extends State<_WorkshopWorldPanel> {
     setState(() {
       _selected = spot;
     });
+  }
+
+  void _walkMechanicTo(TapUpDetails details) {
+    if (details.localPosition.dy < _walkableGroundTop) {
+      return;
+    }
+
+    final targetLeft = (details.localPosition.dx - (_mechanicWidth / 2)).clamp(
+      _stageInset,
+      _stageWidth - _mechanicWidth - _stageInset,
+    );
+
+    setState(() {
+      _mechanicLeft = targetLeft;
+      _targetMarkerLeft = targetLeft + (_mechanicWidth / 2) - 7;
+      _hasWalkTarget = true;
+      _selected = _WorldSpot.mechanic;
+    });
+  }
+
+  String? get _detailOverride {
+    if (_selected != _WorldSpot.mechanic || !_hasWalkTarget) {
+      return null;
+    }
+
+    return '터치한 위치로 직접 걸어 이동 중';
   }
 }
 
@@ -323,6 +373,42 @@ class _SideScrollWorkshopPainter extends CustomPainter {
   bool shouldRepaint(covariant _SideScrollWorkshopPainter oldDelegate) => false;
 }
 
+class _WalkTargetMarker extends StatelessWidget {
+  const _WalkTargetMarker();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 14,
+      height: 18,
+      child: CustomPaint(painter: const _WalkTargetMarkerPainter()),
+    );
+  }
+}
+
+class _WalkTargetMarkerPainter extends CustomPainter {
+  const _WalkTargetMarkerPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..style = PaintingStyle.fill;
+    paint.color = PitStopColors.warningAmber;
+    canvas.drawOval(Rect.fromLTWH(0, 4, size.width, size.height - 4), paint);
+    paint
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..color = PitStopColors.diagCool900;
+    canvas.drawLine(
+      Offset(size.width / 2, 0),
+      Offset(size.width / 2, size.height),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _WalkTargetMarkerPainter oldDelegate) => false;
+}
+
 class _WorldHotspot extends StatelessWidget {
   const _WorldHotspot({
     super.key,
@@ -409,9 +495,10 @@ class _WorldHotspot extends StatelessWidget {
 }
 
 class _WorldStatusStrip extends StatelessWidget {
-  const _WorldStatusStrip({required this.spot});
+  const _WorldStatusStrip({required this.spot, this.detailOverride});
 
   final _WorldSpot spot;
+  final String? detailOverride;
 
   @override
   Widget build(BuildContext context) {
@@ -428,7 +515,7 @@ class _WorldStatusStrip extends StatelessWidget {
           children: [
             Text(spot.title, style: PitStopText.sectionTitle),
             const SizedBox(height: PitStopSpacing.xs),
-            Text(spot.detail, style: PitStopText.body),
+            Text(detailOverride ?? spot.detail, style: PitStopText.body),
           ],
         ),
       ),

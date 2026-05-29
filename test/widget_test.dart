@@ -24,6 +24,26 @@ void main() {
     expect(find.text('정비사 선택됨'), findsOneWidget);
     expect(find.text('오늘의 플레이어 자리, 손님 응대와 작업 배정을 담당'), findsOneWidget);
 
+    final mechanicBeforeWalk = tester.getTopLeft(
+      find.byKey(const Key('mechanic-avatar-placeholder')),
+    );
+    final stageTopLeft = tester.getTopLeft(
+      find.byKey(const Key('world-tap-layer')),
+    );
+
+    await tester.tapAt(stageTopLeft + const Offset(620, 236));
+    await tester.pump();
+
+    expect(find.text('터치한 위치로 직접 걸어 이동 중'), findsOneWidget);
+    expect(find.byKey(const Key('walk-target-marker')), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 600));
+
+    final mechanicAfterWalk = tester.getTopLeft(
+      find.byKey(const Key('mechanic-avatar-placeholder')),
+    );
+    expect(mechanicAfterWalk.dx, greaterThan(mechanicBeforeWalk.dx + 100));
+
     await tester.drag(
       find.byKey(const Key('side-scroll-workshop-stage')),
       const Offset(-360, 0),
