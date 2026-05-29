@@ -20,6 +20,8 @@ class WorkshopOverviewScreen extends StatelessWidget {
           children: const [
             _WorkshopHeader(),
             SizedBox(height: PitStopSpacing.lg),
+            _WorkshopWorldPanel(),
+            SizedBox(height: PitStopSpacing.lg),
             _DailySummaryPanel(),
             SizedBox(height: PitStopSpacing.lg),
             _CustomerQueuePanel(),
@@ -46,6 +48,444 @@ class _WorkshopHeader extends StatelessWidget {
         SizedBox(height: PitStopSpacing.sm),
         Text('손님 큐와 작업대 상태를 먼저 훑습니다.', style: PitStopText.body),
       ],
+    );
+  }
+}
+
+class _WorkshopWorldPanel extends StatefulWidget {
+  const _WorkshopWorldPanel();
+
+  @override
+  State<_WorkshopWorldPanel> createState() => _WorkshopWorldPanelState();
+}
+
+class _WorkshopWorldPanelState extends State<_WorkshopWorldPanel> {
+  _WorldSpot _selected = _WorldSpot.customer;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Panel(
+      title: '블록 정비소 월드',
+      shopShare: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AspectRatio(
+            aspectRatio: 1.35,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: PitStopColors.diagCool50,
+                border: Border.all(color: PitStopColors.shopWarm700, width: 2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LayoutBuilder(
+                  builder: (context, _) {
+                    return Stack(
+                      key: const Key('workshop-world-panel'),
+                      children: [
+                        const Positioned.fill(
+                          child: CustomPaint(painter: _WorkshopFloorPainter()),
+                        ),
+                        _PositionedWorldHotspot(
+                          left: 0.10,
+                          top: 0.16,
+                          child: _WorldHotspot(
+                            key: const Key('world-hotspot-desk'),
+                            label: '접수대',
+                            selected: _selected == _WorldSpot.desk,
+                            onTap: () => _select(_WorldSpot.desk),
+                            child: const _BlockReceptionDesk(),
+                          ),
+                        ),
+                        _PositionedWorldHotspot(
+                          left: 0.56,
+                          top: 0.16,
+                          child: _WorldHotspot(
+                            key: const Key('world-hotspot-lift'),
+                            label: '1번 리프트',
+                            selected: _selected == _WorldSpot.lift,
+                            onTap: () => _select(_WorldSpot.lift),
+                            child: const _BlockLift(),
+                          ),
+                        ),
+                        _PositionedWorldHotspot(
+                          left: 0.46,
+                          top: 0.48,
+                          child: _WorldHotspot(
+                            key: const Key('world-hotspot-car'),
+                            label: '대기 차량',
+                            selected: _selected == _WorldSpot.car,
+                            onTap: () => _select(_WorldSpot.car),
+                            child: const _BlockCar(),
+                          ),
+                        ),
+                        _PositionedWorldHotspot(
+                          left: 0.18,
+                          top: 0.50,
+                          child: _WorldHotspot(
+                            key: const Key('world-hotspot-customer'),
+                            label: '첫 손님',
+                            selected: _selected == _WorldSpot.customer,
+                            onTap: () => _select(_WorldSpot.customer),
+                            child: const _BlockCustomerAvatar(),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: PitStopSpacing.md),
+          _WorldStatusStrip(spot: _selected),
+        ],
+      ),
+    );
+  }
+
+  void _select(_WorldSpot spot) {
+    setState(() {
+      _selected = spot;
+    });
+  }
+}
+
+enum _WorldSpot { desk, lift, car, customer }
+
+extension _WorldSpotCopy on _WorldSpot {
+  String get title {
+    return switch (this) {
+      _WorldSpot.desk => '접수대 선택됨',
+      _WorldSpot.lift => '1번 리프트 선택됨',
+      _WorldSpot.car => '대기 차량 선택됨',
+      _WorldSpot.customer => '첫 손님 선택됨',
+    };
+  }
+
+  String get detail {
+    return switch (this) {
+      _WorldSpot.desk => '상담 기록과 결제는 아직 잠겨 있음',
+      _WorldSpot.lift => '비어 있음, 진단 차량을 올릴 준비 완료',
+      _WorldSpot.car => '차량 콘텐츠 연결 전, 기본 점검 대기',
+      _WorldSpot.customer => '예산을 신경 쓰며 접수 순서를 기다림',
+    };
+  }
+}
+
+class _PositionedWorldHotspot extends StatelessWidget {
+  const _PositionedWorldHotspot({
+    required this.left,
+    required this.top,
+    required this.child,
+  });
+
+  final double left;
+  final double top;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Stack(
+            children: [
+              Positioned(
+                left: constraints.maxWidth * left,
+                top: constraints.maxHeight * top,
+                child: child,
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _WorkshopFloorPainter extends CustomPainter {
+  const _WorkshopFloorPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final tileWidth = size.width / 4.5;
+    final tileHeight = size.height / 5.2;
+    final origin = Offset(size.width * 0.50, size.height * 0.04);
+    final paint = Paint()..style = PaintingStyle.fill;
+    final stroke = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5
+      ..color = PitStopColors.shopWarm700.withValues(alpha: 0.55);
+
+    for (var row = 0; row < 5; row += 1) {
+      for (var col = 0; col < 5; col += 1) {
+        final center = Offset(
+          origin.dx + (col - row) * tileWidth * 0.45,
+          origin.dy + (col + row) * tileHeight * 0.45,
+        );
+        final path = Path()
+          ..moveTo(center.dx, center.dy)
+          ..lineTo(center.dx + tileWidth * 0.45, center.dy + tileHeight * 0.22)
+          ..lineTo(center.dx, center.dy + tileHeight * 0.44)
+          ..lineTo(center.dx - tileWidth * 0.45, center.dy + tileHeight * 0.22)
+          ..close();
+        paint.color = (row + col).isEven
+            ? PitStopColors.shopWarm50
+            : PitStopColors.shopWarm300;
+        canvas.drawPath(path, paint);
+        canvas.drawPath(path, stroke);
+      }
+    }
+
+    final roadPaint = Paint()
+      ..style = PaintingStyle.fill
+      ..color = PitStopColors.diagCool500.withValues(alpha: 0.18);
+    final road = Path()
+      ..moveTo(size.width * 0.12, size.height * 0.82)
+      ..lineTo(size.width * 0.88, size.height * 0.82)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(road, roadPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _WorkshopFloorPainter oldDelegate) => false;
+}
+
+class _WorldHotspot extends StatelessWidget {
+  const _WorldHotspot({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    required this.child,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              padding: const EdgeInsets.all(PitStopSpacing.xs),
+              decoration: BoxDecoration(
+                color: selected
+                    ? PitStopColors.warningAmber
+                    : PitStopColors.paper.withValues(alpha: 0.92),
+                border: Border.all(
+                  color: selected
+                      ? PitStopColors.diagCool900
+                      : PitStopColors.shopWarm700,
+                  width: selected ? 3 : 2,
+                ),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: PitStopColors.diagCool900.withValues(alpha: 0.20),
+                    offset: const Offset(0, 4),
+                    blurRadius: 0,
+                  ),
+                ],
+              ),
+              child: child,
+            ),
+            const SizedBox(height: PitStopSpacing.xs),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: PitStopColors.diagCool900,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: PitStopSpacing.sm,
+                  vertical: PitStopSpacing.xs,
+                ),
+                child: Text(
+                  label,
+                  style: PitStopText.caption.copyWith(
+                    color: PitStopColors.paper,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WorldStatusStrip extends StatelessWidget {
+  const _WorldStatusStrip({required this.spot});
+
+  final _WorldSpot spot;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: PitStopColors.paper,
+        border: Border.all(color: PitStopColors.shopWarm700),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(PitStopSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(spot.title, style: PitStopText.sectionTitle),
+            const SizedBox(height: PitStopSpacing.xs),
+            Text(spot.detail, style: PitStopText.body),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BlockReceptionDesk extends StatelessWidget {
+  const _BlockReceptionDesk();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: 78,
+      height: 58,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          Positioned(
+            bottom: 0,
+            child: _PixelBox(
+              width: 72,
+              height: 30,
+              color: PitStopColors.shopWarm700,
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left: 12,
+            child: _PixelBox(
+              width: 42,
+              height: 28,
+              color: PitStopColors.diagCool500,
+            ),
+          ),
+          Positioned(top: 8, right: 8, child: _PixelBox(width: 18, height: 18)),
+        ],
+      ),
+    );
+  }
+}
+
+class _BlockLift extends StatelessWidget {
+  const _BlockLift();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: 84,
+      height: 64,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          Positioned(
+            bottom: 0,
+            child: _PixelBox(
+              width: 80,
+              height: 14,
+              color: PitStopColors.diagCool500,
+            ),
+          ),
+          Positioned(
+            left: 8,
+            bottom: 12,
+            child: _PixelBox(
+              width: 12,
+              height: 46,
+              color: PitStopColors.shopWarm700,
+            ),
+          ),
+          Positioned(
+            right: 8,
+            bottom: 12,
+            child: _PixelBox(
+              width: 12,
+              height: 46,
+              color: PitStopColors.shopWarm700,
+            ),
+          ),
+          Positioned(top: 12, child: _PixelBox(width: 62, height: 12)),
+        ],
+      ),
+    );
+  }
+}
+
+class _BlockCar extends StatelessWidget {
+  const _BlockCar();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: 88,
+      height: 52,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          Positioned(
+            bottom: 8,
+            child: _PixelBox(
+              width: 80,
+              height: 24,
+              color: PitStopColors.successGreen,
+            ),
+          ),
+          Positioned(
+            top: 2,
+            child: _PixelBox(
+              width: 42,
+              height: 22,
+              color: PitStopColors.diagCool50,
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 12,
+            child: _PixelBox(
+              width: 14,
+              height: 14,
+              color: PitStopColors.diagCool900,
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 12,
+            child: _PixelBox(
+              width: 14,
+              height: 14,
+              color: PitStopColors.diagCool900,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
